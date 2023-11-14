@@ -26,5 +26,5 @@ app.use('/api/docuseal', docuseal)
 app.use('/api/email', email)
 
 app.listen(process.env.REACT_APP_SERVER_PORT, () => {
-  console.log(`Servidor rodando na porta ${process.env.REACT_APP_SERVER_PORT}`);
+  console.log(`Servidor rodando na porta ${process.env.PORT}`);
 });
