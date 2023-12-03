@@ -34,11 +34,10 @@ router.post("/auth", (req, res) => {
 router.post("/user", async (req, res) => {
   const token = req.headers.authorization;
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
-
   if (verToken) {
     const userData = await directusRequest("/items/Users?filter[user_code][_eq]=" + req.body.code_user + "", "", "GET");
     if (userData) {
-      delete userData.status;
+      //delete userData.status;
       delete userData.sort;
       delete userData.user_created;
       delete userData.user_updated;
@@ -184,7 +183,9 @@ router.post("/update", async (req, res) => {
   const token = req.headers.authorization;
   const formData = req.body.formData;
 
-  if (formData.pass_account) {
+  console.log(req.body)
+
+  if (formData && formData.pass_account) {
     var pass = formData.pass_account;
     pass = pass.toString();
 
