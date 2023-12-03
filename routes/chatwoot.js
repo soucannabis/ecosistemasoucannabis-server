@@ -101,7 +101,30 @@ router.post('/send-message-chat', async (req, res) => {
                 console.log(error);
             });
 
-           
+            var label = ""
+
+            console.log(req.body.type)
+
+            if(req.body.type == "0"){
+                label = ["solicitacao-contato-cadastramento"]
+            }else{
+                label = ["agendamento-consulta"]
+            }
+
+
+            await axios.request({
+                method: 'POST',
+                maxBodyLength: Infinity,
+                url: process.env.CHATWOOT_URL+"/api/v1/accounts/1/conversations/" + conversationId + "/labels",
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json; charset=utf-8',
+                    'api_access_token': process.env.CHATWOOT_TOKEN,
+                },
+                data: JSON.stringify({
+                    "labels": label,
+                })
+            })           
 
     } else {
         res.status(401)
