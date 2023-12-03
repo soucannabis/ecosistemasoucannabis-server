@@ -4,8 +4,7 @@ dotenv.config()
 
 var requestData = []
 
-async function zapsignRequest(query, data, method) {
-  console.log(JSON.stringify(data))
+async function docusealRequest(query, data, method) {
      let config = {
         method: method,
         headers: {
@@ -13,14 +12,13 @@ async function zapsignRequest(query, data, method) {
           "content-type": "application/json"
       },
         redirect: 'follow',
-        url: process.env.DOCUSEAL_URL_API+query,
+        url: process.env.DOCUSEAL_API_URL+query,
         data : data
       };
       
       await axios.request(config)
       .then((response) => {
         requestData = response.data
-        console.log(requestData)
       })
       .catch((error) => {
         console.log(error);
@@ -29,4 +27,4 @@ async function zapsignRequest(query, data, method) {
       return requestData
 }
 
-module.exports = zapsignRequest;
+module.exports = docusealRequest;
