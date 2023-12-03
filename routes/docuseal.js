@@ -11,6 +11,7 @@ router.post('/create-contract', async (req, res) => {
     const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", '', "GET")
 
     if (verToken) {
+        console.log("DOCUSEAL")
         console.log(req.body)
 
         var body = JSON.stringify({
@@ -19,11 +20,9 @@ router.post('/create-contract', async (req, res) => {
                 {
                     "submitters": [
                         {
-                            "name": req.body[1].default_value,
+                            "name": req.body[2].default_value,
                             "role": "First Submitter",
-                            "email": "john.doe@example.com",
-                            "phone": "+1234567890",
-                            "values": "",
+                            "email": req.body[1].default_value,
                             "fields": req.body
                         }
                     ]
@@ -41,9 +40,8 @@ router.post('/create-contract', async (req, res) => {
 });
 
 router.post('/assign-contracts', async (req, res) => {
-    console.log(req.body)
-    if (req.body.event_type == "form.completed") {
-        await directusRequest("/items/Users/" + req.body.data.values[0].value, { associate_status: 4, contract: req.body.data.documents[0].url }, "PATCH")
+    if (req.body.body.event_type == "form.completed") {
+        await directusRequest("/items/Users/" + req.body.body.data.values[0].value, { associate_status: 4, contract: req.body.body.data.documents[0].url, status:"signedcontract"}, "PATCH")
     }
     res.status(200).send("OK")
 });
