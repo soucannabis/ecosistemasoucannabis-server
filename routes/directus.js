@@ -17,7 +17,7 @@ function encrypt(encrypt, secretKey) {
   return encrypted;
 }
 
-const secretKey = process.env.REACT_APP_PASS_ENCRYPT;
+const secretKey = process.env.PASS_ENCRYPT;
 
 router.post("/auth", (req, res) => {
   const { login, senha } = req.body;
