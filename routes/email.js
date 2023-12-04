@@ -28,7 +28,7 @@ router.post('/lost-password', async (req, res) => {
             return encrypted;
         }
 
-        const secretKey = process.env.REACT_APP_PASS_ENCRYPT
+        const secretKey = process.env.PASS_ENCRYPT
 
         var id = userData.id
         id = id.toString()
