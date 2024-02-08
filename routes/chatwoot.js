@@ -14,7 +14,7 @@ router.post('/send-message-api', async (req, res) => {
 
     const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", '', "GET")
     if (verToken) {     
-        await chatWootRequest(phone, "Olá, " + req.body.name + ".\nSua solicitação de contato foi recebida, você entá em nossa lista de espera!\nAguarde para ser etendido.\nObrigado.")
+       await chatWootRequest(phone, "Olá, " + req.body.name + ".\nSua solicitação de contato foi recebida, você entá em nossa lista de espera!\nAguarde para ser etendido.\nObrigado.")
         .then((response) => {
             res.send(response)
         })
@@ -103,8 +103,6 @@ router.post('/send-message-chat', async (req, res) => {
 
             var label = ""
 
-            console.log(req.body.type)
-
             if(req.body.type == "0"){
                 label = ["solicitacao-contato-cadastramento"]
             }else{
@@ -112,7 +110,7 @@ router.post('/send-message-chat', async (req, res) => {
             }
 
 
-            await axios.request({
+           /* await axios.request({
                 method: 'POST',
                 maxBodyLength: Infinity,
                 url: process.env.CHATWOOT_URL+"/api/v1/accounts/1/conversations/" + conversationId + "/labels",
@@ -124,7 +122,7 @@ router.post('/send-message-chat', async (req, res) => {
                 data: JSON.stringify({
                     "labels": label,
                 })
-            })           
+            })   */        
 
     } else {
         res.status(401)
