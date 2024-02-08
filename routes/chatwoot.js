@@ -81,7 +81,6 @@ router.post('/send-message-chat', async (req, res) => {
                 console.log(error);
             });
 
-
         await axios.request({
             method: 'POST',
             maxBodyLength: Infinity,
@@ -103,17 +102,16 @@ router.post('/send-message-chat', async (req, res) => {
 
             var label = ""
 
-            if(req.body.type == "0"){
+            if(req.body.type != "appointment"){
                 label = ["solicitacao-contato-cadastramento"]
             }else{
                 label = ["agendamento-consulta"]
             }
-
-
-           /* await axios.request({
+        
+          await axios.request({
                 method: 'POST',
                 maxBodyLength: Infinity,
-                url: process.env.CHATWOOT_URL+"/api/v1/accounts/1/conversations/" + conversationId + "/labels",
+                url: process.env.CHATWOOT_URL+"/api/v1/accounts/"+process.env.CHATWOOT_ACCOUNT_ID+"/conversations/" + conversationId + "/labels",
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Accept': 'application/json; charset=utf-8',
@@ -122,7 +120,7 @@ router.post('/send-message-chat', async (req, res) => {
                 data: JSON.stringify({
                     "labels": label,
                 })
-            })   */        
+            })         
 
     } else {
         res.status(401)
