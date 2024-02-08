@@ -36,7 +36,7 @@ router.post('/send-message-chat', async (req, res) => {
         var sourceId = 0
         var conversationId = 0
 
-        const url = process.env.CHATWOOT_URL+"/public/api/v1/inboxes/"+process.env.CHANNEL_ID+"/contacts"
+        const url = process.env.CHATWOOT_URL+"/public/api/v1/inboxes/"+process.env.CHATWOOT_CHANNEL_ID+"/contacts"
         
         let config = {
             method: 'POST',
