@@ -115,17 +115,6 @@ router.post("/login", async (req, res) => {
   if (verToken) {
     const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "", "", "GET");
 
-    var passwordMatch = false;
-
-    if (userData) {
-      var pass = req.body.pass;
-      var userPass = decrypt(userData.pass_account, secretKey);
-
-      if (pass == userPass) {
-        passwordMatch = true;
-      }
-    }
-
     if (userData) {
       res.send(userData);
     } else {
