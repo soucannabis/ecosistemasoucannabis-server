@@ -11,6 +11,7 @@ router.post('/orders', async (req, res) => {
 
     if (verToken) {     
         const order = await pagarmRequest("/orders", req.body, "POST")
+        console.log(order)
         res.send(order)
         res.status(200)
     } else {
