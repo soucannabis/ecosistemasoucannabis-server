@@ -259,8 +259,21 @@ router.get("/products", async (req, res) => {
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
 
   if (verToken) {
-    const userData = await directusRequest("/items/Products", "", "GET");
-    res.send(userData);
+
+    const filter = req.query
+    const userData = await directusRequest("/items/Users_Products?filter[id][_in]="+filter.products, "", "GET")
+
+    var concatenatedIds = "";
+
+    for (let i = 0; i < userData.length; i++) {
+      concatenatedIds += userData[i].Products_id;      
+      if (i < userData.length - 1) {
+        concatenatedIds += ",";
+      }
+    }
+
+    const prodctsList = await directusRequest("/items/Products?filter[id][_in]="+concatenatedIds, "", "GET")
+    res.send(prodctsList);
     res.status(200);
   } else {
     res.status(401).json({ mensagem: "Credenciais inválidas" });

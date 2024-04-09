@@ -19,15 +19,12 @@ async function directusRequest(query, data, method) {
 
   try {
     const response = await axios.request(config);
-    if (query == "/folders" || query == "/items/Users") {
+    if (query == "/folders" || query == "/items/Users" || query.includes("/items/Users_Products") || query.includes("/items/Products") ) {
       requestData = response.data.data;
     } else {
       requestData = response.data.data[0];
     }
 
-    if (query == "/items/Products") {
-      requestData = response.data.data;
-    }
     return requestData;
   } catch (error) {
     console.log("Erro");
