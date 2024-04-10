@@ -260,6 +260,8 @@ router.get("/products", async (req, res) => {
 
   if (verToken) {
 
+    console.log(req.query)
+
     const filter = req.query
     const userData = await directusRequest("/items/Users_Products?filter[id][_in]="+filter.products, "", "GET")
 
@@ -272,8 +274,15 @@ router.get("/products", async (req, res) => {
       }
     }
 
-    const prodctsList = await directusRequest("/items/Products?filter[id][_in]="+concatenatedIds, "", "GET")
-    res.send(prodctsList);
+    const productsList = await directusRequest("/items/Products?filter[id][_in]="+concatenatedIds, "", "GET")
+    const coupon = await directusRequest("/items/Coupons?filter[id][_eq]="+req.query.coupon, "", "GET")
+
+    res.send({
+      "response":{
+        productsList,
+        coupon
+      }
+    });
     res.status(200);
   } else {
     res.status(401).json({ mensagem: "Credenciais inválidas" });
