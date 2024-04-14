@@ -113,8 +113,8 @@ router.post("/login", async (req, res) => {
 
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
   if (verToken) {
-    const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "", "", "GET");
-
+    const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "&sort[]=-date_created", "", "GET");
+    console.log(userData)
     if (userData) {
       res.send(userData);
     } else {
