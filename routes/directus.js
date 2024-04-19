@@ -131,8 +131,8 @@ router.post("/login", async (req, res) => {
 
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
   if (verToken) {
-    const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "&sort[]=-date_created", "", "GET");
-
+    const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "&sort[]=-date_created&sort[]=-date_created", "", "GET");
+    console.log(userData)
     if (userData) {
       res.send(userData);
     } else {
@@ -189,8 +189,6 @@ router.post("/create-user", async (req, res) => {
 router.post("/update", async (req, res) => {
   const token = req.headers.authorization;
   const formData = req.body.formData;
-
-  console.log(req.body)
 
   if (formData && formData.pass_account) {
     var pass = formData.pass_account;
@@ -304,7 +302,6 @@ router.delete("/coupons", async (req, res) => {
   const token = req.headers.authorization;
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
 
-  console.log(req.body)
   if (verToken) {
     const userData = await directusRequest("/items/Coupons/"+req.body.couponId, "", "DELETE");
     res.send(userData);

@@ -24,7 +24,7 @@ async function directusRequest(query, data, method) {
     return requestData;
   } catch (error) {
     console.log("Erro");
-    console.log(error.response.data.errors);
+    console.log(error.response);
   }
 }
 
