@@ -10,7 +10,7 @@ async function directusRequest(query, data, method) {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type,Authorization,Access-Control-Allow-Origin,Access-Control-Allow-Headers",
-      "Authorization": "Bearer "+process.env.DIRECTUS_API_TOKEN,
+      "Authorization": "Bearer " + process.env.DIRECTUS_API_TOKEN,
     },
     maxBodyLength: Infinity,
     url: process.env.DIRECTUS_API_URL + query,
@@ -19,15 +19,8 @@ async function directusRequest(query, data, method) {
 
   try {
     const response = await axios.request(config);
-    if (query == "/folders" || query == "/items/Users") {
-      requestData = response.data.data;
-    } else {
-      requestData = response.data.data[0];
-    }
-
-    if (query == "/items/Products") {
-      requestData = response.data.data;
-    }
+    requestData = response.data.data;
+    
     return requestData;
   } catch (error) {
     console.log("Erro");

@@ -50,6 +50,24 @@ router.post("/user", async (req, res) => {
   }
 });
 
+router.get("/all-users", async (req, res) => {
+  const token = req.headers.authorization;
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+  if (verToken) {
+    const userData = await directusRequest("/items/Users?sort=-date_created", "", "GET");
+    if (userData) {
+
+
+    }
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
 router.post("/user-appointment", async (req, res) => {
   const token = req.headers.authorization;
 
@@ -259,8 +277,89 @@ router.get("/products", async (req, res) => {
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
 
   if (verToken) {
-    const userData = await directusRequest("/items/Products", "", "GET");
+    const userData = await directusRequest("/items/Products?sort=cod", "", "GET");
     res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.get("/coupons", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const userData = await directusRequest("/items/Coupons", "", "GET");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.delete("/coupons", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  console.log(req.body)
+  if (verToken) {
+    const userData = await directusRequest("/items/Coupons/"+req.body.couponId, "", "DELETE");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.post("/coupons", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  const id = req.body.coupon.user
+  if (verToken) {
+    const userData = await directusRequest("/items/Coupons?filter[user][_eq]="+id, "", "GET");
+
+    if(userData && userData.length > 0){
+      res.send(false);
+    }else{
+      await directusRequest("/items/Coupons", req.body.coupon, "POST");
+      res.send(true);
+    }
+
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.post("/documents", async (req, res) => {
+  const token = req.headers.authorization;
+  var docsData = []
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const docs = await directusRequest("/items/Users_files?filter[id][_in]=" + req.body.documents, "", "GET");
+
+    const promises = docs.map(async doc => {
+      const docData = await directusRequest("/files/" + doc.directus_files_id, "", "GET");
+      return {
+        "docName": docData.title,
+        "docType": docData.type,
+        "docSlug": doc.directus_files_id
+      };
+
+    });
+
+    const resolvedData = await Promise.all(promises);
+    docsData.push(...resolvedData);
+
+    res.send(docsData);
     res.status(200);
   } else {
     res.status(401).json({ mensagem: "Credenciais inválidas" });
