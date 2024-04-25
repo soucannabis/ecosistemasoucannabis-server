@@ -14,18 +14,19 @@ app.use(cors({
   credentials: true
 }));
 
-
 const direcuts = require('./routes/directus')
 const chatwoot = require('./routes/chatwoot')
 const docuseal = require('./routes/docuseal')
 const pagarme = require('./routes/pagarme')
 const email = require('./routes/email')
+const correios = require('./routes/correios')
 
 app.use('/api/directus', direcuts); 
 app.use('/api/chatwoot', chatwoot)
 app.use('/api/docuseal', docuseal)
 app.use('/api/pagarme', pagarme)
 app.use('/api/email', email)
+app.use('/api/correios', correios)
 
 app.listen(process.env.PORT, () => {
   console.log(`Servidor rodando na porta ${process.env.PORT}`);

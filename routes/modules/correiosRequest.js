@@ -1,0 +1,27 @@
+const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config()
+
+
+async function correiosRequest(query, data, method) {
+  var requestData = [];
+
+  let config = {
+    method: 'post',
+    maxBodyLength: Infinity,
+    url: 'https://www.melhorenvio.com.br/api/v2/me' + query,
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiOTY5ZmNlOTY4OWY5ODNkZWFjOTUyNjNjZDdhOGNiNWJhYjQ3YzljMDE3Y2FmNTdhZTMyOWUxMjg1NmYwMGIzMDg3ODNkODNlY2ZjYWEwNzUiLCJpYXQiOjE3MTM5NzI3ODIuMTI3NTYxLCJuYmYiOjE3MTM5NzI3ODIuMTI3NTYzLCJleHAiOjE3NDU1MDg3ODIuMTE0NjM3LCJzdWIiOiI5YmUyN2M5YS00NTdlLTQzZWEtYmVmNC0wYzQxOTgxM2I2MGYiLCJzY29wZXMiOlsiY2FydC1yZWFkIiwiY2FydC13cml0ZSIsImNvbXBhbmllcy1yZWFkIiwiY29tcGFuaWVzLXdyaXRlIiwiY291cG9ucy1yZWFkIiwiY291cG9ucy13cml0ZSIsIm5vdGlmaWNhdGlvbnMtcmVhZCIsIm9yZGVycy1yZWFkIiwicHJvZHVjdHMtcmVhZCIsInByb2R1Y3RzLWRlc3Ryb3kiLCJwcm9kdWN0cy13cml0ZSIsInB1cmNoYXNlcy1yZWFkIiwic2hpcHBpbmctY2FsY3VsYXRlIiwic2hpcHBpbmctY2FuY2VsIiwic2hpcHBpbmctY2hlY2tvdXQiLCJzaGlwcGluZy1jb21wYW5pZXMiLCJzaGlwcGluZy1nZW5lcmF0ZSIsInNoaXBwaW5nLXByZXZpZXciLCJzaGlwcGluZy1wcmludCIsInNoaXBwaW5nLXNoYXJlIiwic2hpcHBpbmctdHJhY2tpbmciLCJlY29tbWVyY2Utc2hpcHBpbmciLCJ0cmFuc2FjdGlvbnMtcmVhZCIsInVzZXJzLXJlYWQiLCJ1c2Vycy13cml0ZSIsIndlYmhvb2tzLXJlYWQiLCJ3ZWJob29rcy13cml0ZSIsIndlYmhvb2tzLWRlbGV0ZSIsInRkZWFsZXItd2ViaG9vayJdfQ.UeNN2yjWOnfolyI_yQ4jrUHI7RL84qGU1JqeXFy1VaZHuzY_9yHo82r2wJuBGBMI-vPdyVrfn3dIlyG3baECjh5LCUSLTTEAeYsz9HUJIewVWyQBZwLf0V8mJ2PQZx3oFrVzvZZEdTwKpzLP7I80koTGKFMfSkTt-xUS-s9bamH8j_StaGBBmvkSglj9O585dDb1w4lbF3fgaYLWUAtG-Gu91fQgFuWY04vv0R06AuGyggl5dnYp0KJ5ddDz8RUlRa3ESorfvJR1ggwVTVDGTyW8wYMfTkQ6EKLP_FLNQkeTnd-VCNachLvsBs32nEjNgTYq2-NH5MzTWlyfQP4YiYj1BTxIPTjmvW2q75skjL1uOLNq7sRX8UsUxrZwUMO0W9GREvovzU41KIPnMqGmDZwVdaqxDZ0cowSMepnG_Sq-DirUyyrdv7dY8nys2g_XeGICbTrHIEh7HsoRGqeI7jRERfPwCl6xXR1j4DU104R_1uqlkMwyvREGGctRekU9R8IhElSfEBT9SYVBMCYgm7fomt1TFm21Rvu-NG1sVBmYGpQ4eIREXRwXNZMQcc02S5i1YWzT24upX_oQmcI_Z45s5zBS4mT9DLaqmaALFTtmc2l1hId_idtzps-G4nYaJJQ4nikBfHWfP0yhB6DU2R_Vd-jQYLB0-TVKCZbKOI0',
+      'Content-Type': 'application/json',
+      'User-Agent': 'Aplicação soucannabisadm@gmail.com'
+    },
+    data: JSON.stringify(data)
+  };
+
+  const response = await axios.request(config)
+  return response.data
+
+}
+
+module.exports = correiosRequest;

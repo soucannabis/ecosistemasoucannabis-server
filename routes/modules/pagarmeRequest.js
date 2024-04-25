@@ -12,7 +12,7 @@ async function pagarmeRequest(query, data, method) {
     url: 'https://api.pagar.me/core/v5/orders',
     headers: { 
       'Content-Type': 'application/json', 
-      'Authorization': 'Basic c2tfdGVzdF8xMDRlNThjN2FiYzI0Y2E1YTVhMTg4OTNlYWE5ZTE3Njo=', 
+      'Authorization': 'Basic '+ process.env.PAGARME_TOKEN, 
       'Cookie': '__cf_bm=Ae6q4CcQvfsg9SzBS23CjBorOTAqPAoJRGQwFCutQdY-1712351591-1.0.1.1-URzWAkNe3NRs6DlL.DlXQPSVkWKTLGBJrdXDa4tulHB_4nLncBLpYnRP90Vj.wUvrtH6_tguCVtHtmK0hoNBHA; _cfuvid=cYfPRfzcfkS6B5zZSnBleCUhgWhT6JQdbkz56Z7Zh_E-1712345373104-0.0.1.1-604800000; AWSALBTG=2cjMPKQkSs7MlUZK9maFwdksomj8rWrBHTcpof2XlOhR2gmsjizXiIVA1B57jcFYDP5ggmeF8Q3P8sab7EWh3nHsk6QAWld0myY7YNPol2NgENdAfX4oYqLGA322YP8lUmVK8LG4YIMzJofFEQd4YlcyPaWx5vI0yAn7IMaOvA6eL04tJp4=; AWSALBTGCORS=2cjMPKQkSs7MlUZK9maFwdksomj8rWrBHTcpof2XlOhR2gmsjizXiIVA1B57jcFYDP5ggmeF8Q3P8sab7EWh3nHsk6QAWld0myY7YNPol2NgENdAfX4oYqLGA322YP8lUmVK8LG4YIMzJofFEQd4YlcyPaWx5vI0yAn7IMaOvA6eL04tJp4='
     },
     data : data

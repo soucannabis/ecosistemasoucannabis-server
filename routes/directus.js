@@ -172,8 +172,6 @@ router.post("/update", async (req, res) => {
   const token = req.headers.authorization;
   const formData = req.body.formData;
 
-  console.log(req.body)
-
   if (formData && formData.pass_account) {
     var pass = formData.pass_account;
     pass = pass.toString();
@@ -260,29 +258,47 @@ router.get("/products", async (req, res) => {
 
   if (verToken) {
 
-    console.log(req.query)
+    var products = req.query.products
+    products = JSON.parse(products)
+    products = products.map(item => item.product)
+    products = products.join(',')
 
-    const filter = req.query
-    const userData = await directusRequest("/items/Users_Products?filter[id][_in]="+filter.products, "", "GET")
-
-    var concatenatedIds = "";
-
-    for (let i = 0; i < userData.length; i++) {
-      concatenatedIds += userData[i].Products_id;      
-      if (i < userData.length - 1) {
-        concatenatedIds += ",";
-      }
-    }
-
-    const productsList = await directusRequest("/items/Products?filter[id][_in]="+concatenatedIds, "", "GET")
-    const coupon = await directusRequest("/items/Coupons?filter[id][_eq]="+req.query.coupon, "", "GET")
+    const productsList = await directusRequest("/items/Products?filter[cod][_in]=" + products, "", "GET")
+    // const coupon = await directusRequest("/items/Coupons?filter[id][_eq]="+req.query.coupon, "", "GET")
 
     res.send({
-      "response":{
+      "response": {
         productsList,
-        coupon
+        // coupon
       }
     });
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.get("/coupons", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+  if (verToken) {
+    const userData = await directusRequest("/items/Coupons?filter[user][_eq]=" + req.query.couponSearchId, "", "GET");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.post("/create-order", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const order = await directusRequest("/items/Orders", req.body, "POST");
+    res.send(order)
     res.status(200);
   } else {
     res.status(401).json({ mensagem: "Credenciais inválidas" });
