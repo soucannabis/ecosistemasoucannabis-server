@@ -68,56 +68,42 @@ router.get("/all-users", async (req, res) => {
   }
 });
 
-router.post("/user-appointment", async (req, res) => {
+router.get("/users", async (req, res) => {
   const token = req.headers.authorization;
 
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
   if (verToken) {
-    const userData = await directusRequest("/items/Users?filter[user_code][_eq]=" + req.body.code_user + "", "", "GET");
+    const userData = await directusRequest("/items/Users/" + req.query.userId, "", "GET");
     if (userData) {
-      delete userData.status;
-      delete userData.sort;
-      delete userData.user_created;
-      delete userData.user_updated;
-      //delete userData.emiiter_rg_associate
-      delete userData.associate_status;
-      delete userData.birthday_associate;
-      delete userData.birthday_patient;
-      //delete userData.cep
-      //delete userData.city
-      delete userData.complement;
-      delete userData.contract;
-      //delete userData.cpf_associate
-      delete userData.cpf_patient;
-      delete userData.date_created;
-      delete userData.date_updated;
-      delete userData.email;
-      //delete userData.email_account
-      delete userData.gender;
-      //delete userData.lastname_associate
-      delete userData.lastname_patient;
-      delete userData.marital_status;
-      //delete userData.mobile_number
-      //delete userData.name_associate
-      delete userData.name_patient;
-      delete userData.nationality;
-      //delete userData.neighborhood
-      //delete userData.number
-      delete userData.pass_account;
-      delete userData.proof_of_address;
-      delete userData.reason_treatment;
-      delete userData.reason_treatment_text;
-      delete userData.responsable_type;
-      delete userData.rg_associate;
-      delete userData.rg_patient;
-      delete userData.rg_patient_proof;
-      delete userData.rg_proof;
-      delete userData.secundary_number;
-      //delete userData.state
-      //delete userData.street
-      delete userData.user_code;
+      res.send(userData);
     }
-    res.send(userData);
+
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.get("/user", async (req, res) => {
+  const token = req.headers.authorization;
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+  if (verToken) {
+    if (req.query.cpf) {
+      const userData = await directusRequest("/items/Users?filter[cpf_associate][_eq]=" + req.query.cpf, "", "GET");
+      if (userData) {
+        res.send(userData);
+      }
+    }
+
+    if (req.query.code) {
+      const userData = await directusRequest("/items/Users?filter[user_code][_eq]=" + req.query.code, "", "GET");
+      if (userData) {
+        res.send(userData);
+      }
+    }
+
     res.status(200);
   } else {
     res.status(401).json({ mensagem: "Credenciais inválidas" });
@@ -131,10 +117,10 @@ router.post("/login", async (req, res) => {
 
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
   if (verToken) {
-    const userData = await directusRequest("/items/Users?filter[email_account][_eq]=" + req.body.email + "&sort[]=-date_created&sort[]=-date_created", "", "GET");
-    console.log(userData)
+    const userData = await directusRequest("/items/Partners?filter[email][_eq]=" + req.body.email + "&sort[]=-date_created&sort[]=-date_created", "", "GET");
+
     if (userData) {
-      res.send(userData);
+      res.send(userData[0]);
     } else {
       res.send(false);
     }
@@ -190,14 +176,6 @@ router.post("/update", async (req, res) => {
   const token = req.headers.authorization;
   const formData = req.body.formData;
 
-  if (formData && formData.pass_account) {
-    var pass = formData.pass_account;
-    pass = pass.toString();
-
-    var userPass = encrypt(pass, secretKey);
-    formData.pass_account = userPass;
-  }
-
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
   if (verToken) {
     const userData = await directusRequest("/items/Users/" + req.body.userId, formData, "PATCH");
@@ -207,7 +185,22 @@ router.post("/update", async (req, res) => {
     res.status(401).json({ mensagem: "Credenciais inválidas" });
     res.status(401);
   }
-});
+})
+
+router.post("/update-order", async (req, res) => {
+  const token = req.headers.authorization;
+  const formData = req.body.formData;
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+  if (verToken) {
+    const userData = await directusRequest("/items/Orders/" + req.body.orderId, formData, "PATCH");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+})
 
 router.post("/files", async (req, res) => {
   const token = req.headers.authorization;
@@ -303,7 +296,7 @@ router.delete("/coupons", async (req, res) => {
   const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
 
   if (verToken) {
-    const userData = await directusRequest("/items/Coupons/"+req.body.couponId, "", "DELETE");
+    const userData = await directusRequest("/items/Coupons/" + req.body.couponId, "", "DELETE");
     res.send(userData);
     res.status(200);
   } else {
@@ -318,11 +311,11 @@ router.post("/coupons", async (req, res) => {
 
   const id = req.body.coupon.user
   if (verToken) {
-    const userData = await directusRequest("/items/Coupons?filter[user][_eq]="+id, "", "GET");
+    const userData = await directusRequest("/items/Coupons?filter[user][_eq]=" + id, "", "GET");
 
-    if(userData && userData.length > 0){
+    if (userData && userData.length > 0) {
       res.send(false);
-    }else{
+    } else {
       await directusRequest("/items/Coupons", req.body.coupon, "POST");
       res.send(true);
     }
@@ -333,6 +326,124 @@ router.post("/coupons", async (req, res) => {
     res.status(401);
   }
 });
+
+router.get("/orders", async (req, res) => {
+  const token = req.headers.authorization;
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const orders = await directusRequest("/items/Orders", "", "GET");
+
+    res.send(orders);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+
+router.get("/partners", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const response = await directusRequest("/items/Partners", "", "GET");
+    res.send(response);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.get("/partner", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const response = await directusRequest("/items/Partners?ilter[user_code][_eq~=" + req.query.code, "", "GET");
+    res.send(response[0]);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.post("/partner", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const partnerData = req.body
+
+    if (req.body && req.body.pass_account) {
+      var pass = req.body.pass_account
+      pass = pass.toString()
+      const pass_account = encrypt(pass, process.env.PASS_ENCRYPT);
+      partnerData.pass_account = pass_account
+    }
+
+    if (req.body.cnpj) {
+      const response = await directusRequest("/items/Partners?filter[cnpj][_eq]=" + req.body.cnpj, "", "GET");
+      if (response && response.length > 0) {
+        res.send(false);
+      } else {
+        const createPartner = await directusRequest("/items/Partners", partnerData, "POST");
+        if (createPartner && createPartner.id) {
+          res.send(true);
+        } else { res.send(false); }
+      }
+    }
+
+    if (req.body.cpf) {
+      const response = await directusRequest("/items/Partners?filter[cpf][_eq]=" + req.body.cpf, "", "GET");
+      if (response && response.length > 0) {
+        res.send(false);
+      } else {
+        const createPartner = await directusRequest("/items/Partners", partnerData, "POST");
+        if (createPartner && createPartner.id) {
+          res.send(true);
+        } else { res.send(false); }
+      }
+    }
+
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.delete("/partner", async (req, res) => {
+  const token = req.headers.authorization;
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+
+  if (verToken) {
+    const userData = await directusRequest("/items/Partners/" + req.body.partnerId, "", "DELETE");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+});
+
+router.patch("/partner", async (req, res) => {
+  const token = req.headers.authorization;
+
+  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
+  if (verToken) {
+    const userData = await directusRequest("/items/Partners/" + req.body.partnerId, req.body.data, "PATCH");
+    res.send(userData);
+    res.status(200);
+  } else {
+    res.status(401).json({ mensagem: "Credenciais inválidas" });
+    res.status(401);
+  }
+})
 
 router.post("/documents", async (req, res) => {
   const token = req.headers.authorization;
