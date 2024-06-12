@@ -250,7 +250,6 @@ router.post("/webhook-update", async (req, res) => {
     const userData = await directusRequest("/items/Users?filter[id][_eq]=" + data.keys[0] + "", "", "GET");
 
     await directusRequest("/items/Users/" + data.keys[0], { associate_status: 8 }, "PATCH");
-    sendEmail(userData.email_account, "Você foi aprovado como associdado", "Olá " + userData.name_associate + ", seu cadastro como associado da souCannabis foi aprovado, acesse essa página para acessar sua conta.");
   }
 });
 
