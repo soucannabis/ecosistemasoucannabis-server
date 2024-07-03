@@ -22,7 +22,7 @@ async function pagarmeRequest(query, data, method) {
         requestData = response.data
       })
       .catch((error) => {
-        console.log(error);
+        console.log(error.response.data);
       });
 
       return requestData

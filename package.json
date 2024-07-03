@@ -12,7 +12,8 @@
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
     "moment-timezone": "^0.5.45",
-    "nodemailer": "^6.9.7"
+    "nodemailer": "^6.9.7",
+    "signale": "^1.4.0"
   },
   "scripts": {
     "start": "nodemon server.js"
