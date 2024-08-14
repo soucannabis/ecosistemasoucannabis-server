@@ -150,6 +150,7 @@ router.post("/create-user", async (req, res) => {
       formData = {
         email_account: req.body.email_account,
         associate_status: 0,
+        partner:req.body.partner
       };
     }
 
