@@ -40,9 +40,12 @@ router.post('/create-contract', async (req, res) => {
 });
 
 router.post('/assign-contracts', async (req, res) => {
-    console.log(req.body)
+    console.log(req.body.data.values)
+
+    const usercode = req.body.data.values.filter(item => item.field == "usercode")
+
     if (req.body.event_type == "form.completed") {
-        await directusRequest("/items/Users/" + req.body.data.values[13].value, { associate_status: 4, contract: req.body.data.documents[0].url, status:"signedcontract"}, "PATCH")
+        await directusRequest("/items/Users/" + usercode[0].value, { associate_status: 4, contract: req.body.data.documents[0].url, status:"signedcontract"}, "PATCH")
     }
     res.status(200).send("OK")
 });
