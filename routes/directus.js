@@ -5,6 +5,7 @@ const directusRequest = require("./modules/directusRequest");
 const sendEmail = require("./modules/sendEmail");
 const bcrypt = require("bcrypt");
 const CryptoJS = require("crypto-js");
+const FormData = require('form-data');
 
 function decrypt(decrypt, secretKey) {
   const bytes = CryptoJS.AES.decrypt(decrypt, secretKey);
@@ -150,7 +151,7 @@ router.post("/create-user", async (req, res) => {
       formData = {
         email_account: req.body.email_account,
         associate_status: 0,
-        partner:req.body.partner
+        partner: req.body.partner
       };
     }
 
@@ -195,20 +196,49 @@ router.post("/update", async (req, res) => {
 });
 
 router.post("/files", async (req, res) => {
-  const token = req.headers.authorization;
+  try {
+    const token = req.headers.authorization;
+    const query = req.query;
+    const file = req.files?.file; // Verifica se o arquivo foi enviado
 
-  if (!req.body.file) {
-    console.log("Nenhum Arquivo");
-  }
+    if (!file) {
+      console.log("Nenhum arquivo foi enviado.")
+      return res.status(400).send({ error: "Nenhum arquivo foi enviado." });
+    }
 
-  const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", "", "GET");
-  if (verToken) {
-    const userData = await directusRequest("/files", req.body.file, "POST", { "Content-Type": "multipart/form-data" });
-    res.send(userData);
-    res.status(200);
-  } else {
-    res.status(401).json({ mensagem: "Credenciais inválidas" });
-    res.status(401);
+    const formData = new FormData();
+
+    // Adiciona campos simples
+    formData.append("folder", query.folder);
+
+    // Adiciona o arquivo diretamente do buffer (file.data)
+    formData.append("file", file.data, {
+      filename: query.filename || file.name,
+      contentType: file.mimetype,
+    });
+
+    // Adiciona outros metadados
+    formData.append("title", file.name);
+
+   // Inspecionar conteúdo do FormData (usando headers e stream)
+   console.log("Headers do FormData:", formData.getHeaders());
+   console.log("Campos do FormData:");
+   for (const [key, value] of Object.entries(formData)) {
+     console.log(`${key}:`, value);
+   }
+    // Verifica o token no Directus
+    const verToken = await directusRequest(`/items/Users_Api?filter[token][_eq]=${token}`, "", "GET");
+    if (verToken) {
+      // Envia o arquivo para o Directus
+      const userData = await directusRequest("/files", formData, "POST");
+      console.log("Arquivo enviado ao Directus:", userData);
+      res.status(200).send(userData);
+    } else {
+      res.status(401).json({ mensagem: "Credenciais inválidas" });
+    }
+  } catch (error) {
+    console.error("Erro no upload:", error.message);
+    res.status(500).send({ error: "Erro ao processar a solicitação." });
   }
 });
 

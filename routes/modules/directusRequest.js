@@ -19,7 +19,8 @@ async function directusRequest(query, data, method) {
 
   try {
     const response = await axios.request(config);
-    if (query == "/folders" || query == "/items/Users") {
+    console.log(query)
+    if (query == "/folders" || query == "/items/Users" || query == "/files") {
       requestData = response.data.data;
     } else {
       requestData = response.data.data[0];
