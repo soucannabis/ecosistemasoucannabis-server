@@ -14,8 +14,41 @@ router.post('/create-contract', async (req, res) => {
         console.log("DOCUSEAL")
         console.log(req.body)
 
+        // Verificar se usercode existe no array req.body
+        const usercodeField = req.body.find(item => item.name === 'usercode');
+        if (!usercodeField) {
+            return res.status(400).json({ mensagem: 'Campo usercode não encontrado' });
+        }
+
+        const usercode = usercodeField.default_value;
+        const associateData = await directusRequest("/items/Users?filter[id][_eq]=" + usercode + "", '', "GET")
+
+        console.log(associateData)
+
+        // Verificar se o responsable_type é "another" e buscar dados do paciente
+        let templateId = 1; // template padrão
+        
+        if (associateData.responsable_type === "another") {
+            templateId = 5; // template para responsável por outro paciente
+            
+            const patientData = await directusRequest("/items/Users?filter[user_code][_eq]=" + associateData.responsible_for + "", '', "GET")
+            
+            // Adicionar dados do paciente ao req.body
+            req.body.push({
+                name: 'Paciente',
+                default_value: patientData.name_associate + " " + patientData.lastname_associate,
+                readonly: true
+            });
+            
+            req.body.push({
+                name: 'CPF_paciente',
+                default_value: patientData.cpf_associate,
+                readonly: true
+            });
+        }
+
         var body = JSON.stringify({
-            "template_id": 1,
+            "template_id": templateId,
             "submission": [
                 {
                     "submitters": [
