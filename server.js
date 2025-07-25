@@ -24,6 +24,16 @@ app.use(cors({
   credentials: true
 }));
 
+// Rota de healthcheck para validar se a API está ativa
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    message: 'API está ativa e funcionando',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 const direcuts = require('./routes/directus')
 const chatwoot = require('./routes/chatwoot')
 const docuseal = require('./routes/docuseal')
