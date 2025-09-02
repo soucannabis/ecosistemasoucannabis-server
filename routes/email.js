@@ -7,6 +7,11 @@ const dotenv = require('dotenv');
 const CryptoJS = require('crypto-js');
 dotenv.config();
 
+function encrypt(encrypt, secretKey) {
+    const encrypted = CryptoJS.AES.encrypt(encrypt, secretKey).toString();
+    return encrypted;
+}
+
 router.post('/lost-password', async (req, res) => {
 
     const token = req.headers.authorization
@@ -18,16 +23,10 @@ router.post('/lost-password', async (req, res) => {
 
         if (userData == undefined) {
             console.log("email nao existe")
-            res.send(false)
-        } else (
-            res.send(true)
-        )
-
-        function encrypt(encrypt, secretKey) {
-            const encrypted = CryptoJS.AES.encrypt(encrypt, secretKey).toString();
-            return encrypted;
+            res.send(false)            
+            return false
         }
-
+            
         const secretKey = process.env.PASS_ENCRYPT
 
         var id = userData.id
@@ -40,7 +39,8 @@ router.post('/lost-password', async (req, res) => {
 
         sendEmail(req.body.email, 'Recuperação de senha', '<a href="' + process.env.REACT_APP_URL + '/nova-senha?' + timestamp + '?' + userId + '">Clique aqui para redefinir sua senha</a>')
 
-
+            res.send(true)
+             
     }
 
 });
