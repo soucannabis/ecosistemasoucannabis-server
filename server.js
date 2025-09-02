@@ -44,6 +44,6 @@ app.use('/api/chatwoot', chatwoot)
 app.use('/api/docuseal', docuseal)
 app.use('/api/email', email)
 
-app.listen(process.env.PORT, '192.168.0.104', () => {
-  console.log(`Servidor rodando na porta ${process.env.PORT} e IP 192.168.0.104`);
+app.listen(process.env.PORT, () => {
+  console.log(`Servidor rodando na porta ${process.env.PORT}`);
 });
