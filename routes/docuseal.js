@@ -3,14 +3,11 @@ const express = require('express');
 const router = express.Router();
 const docusealRequest = require('./modules/docusealRequest');
 const directusRequest = require('./modules/directusRequest');
+const { authMiddleware } = require('./auth');
 
 
-router.post('/create-contract', async (req, res) => {
-
-    const token = req.headers.authorization
-    const verToken = await directusRequest("/items/Users_Api?filter[token][_eq]=" + token + "", '', "GET")
-
-    if (verToken) {
+router.post('/create-contract', authMiddleware, async (req, res) => {
+    try {
         console.log("DOCUSEAL")
         console.log(req.body)
 
@@ -64,23 +61,33 @@ router.post('/create-contract', async (req, res) => {
         });
 
         const docusignContract = await docusealRequest("/submissions", body, "POST")
-        res.send(docusignContract)
-        res.status(200)
-    } else {
-        res.status(401).json({ mensagem: 'Credenciais inválidas' });
-        res.status(401)
+        res.status(200).json(docusignContract)
+    } catch (error) {
+        console.error('Erro ao criar contrato:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Erro interno do servidor' 
+        });
     }
 });
 
 router.post('/assign-contracts', async (req, res) => {
-    console.log(req.body.data.values)
+    try {
+        console.log(req.body.data.values)
 
-    const usercode = req.body.data.values.filter(item => item.field == "usercode")
+        const usercode = req.body.data.values.filter(item => item.field == "usercode")
 
-    if (req.body.event_type == "form.completed") {
-        await directusRequest("/items/Users/" + usercode[0].value, { associate_status: 4, contract: req.body.data.documents[0].url, status:"signedcontract"}, "PATCH")
+        if (req.body.event_type == "form.completed") {
+            await directusRequest("/items/Users/" + usercode[0].value, { associate_status: 4, contract: req.body.data.documents[0].url, status:"signedcontract"}, "PATCH")
+        }
+        res.status(200).json({ success: true, message: "OK" })
+    } catch (error) {
+        console.error('Erro ao atribuir contratos:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Erro interno do servidor' 
+        });
     }
-    res.status(200).send("OK")
 });
 
 module.exports = router;
