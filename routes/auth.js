@@ -293,12 +293,6 @@ async function authMiddleware(req, res, next) {
 // ✅ ROTA: POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
-    console.log(`🔍 [LOGIN] Iniciando processo de login`);
-    console.log(`🔍 [LOGIN] Headers da requisição:`, JSON.stringify(req.headers, null, 2));
-    console.log(`🔍 [LOGIN] Body da requisição:`, JSON.stringify(req.body, null, 2));
-    console.log(`🔍 [LOGIN] URL completa: ${req.originalUrl}`);
-    console.log(`🔍 [LOGIN] Método: ${req.method}`);
-    
     const { email, password } = req.body;
     
     // Validar entrada
