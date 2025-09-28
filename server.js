@@ -84,45 +84,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Configuração de cookies seguros para CORS
-app.use((req, res, next) => {
-  res.cookie = (name, value, options = {}) => {
-    // Configuração que funciona para cross-origin em desenvolvimento
-    const defaultOptions = {
-      httpOnly: true,        // Não acessível via JavaScript
-      secure: process.env.NODE_ENV === 'production', // true em produção (HTTPS), false em desenvolvimento (HTTP)
-      sameSite: 'strict',    // ✅ FUNCIONA para cross-origin em desenvolvimento
-      path: '/',             // Disponível em todo o site
-      maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias
-    };
-    
-    console.log(`🔍 [COOKIE] Origem: ${req.headers.origin || 'sem origem'}`);
-    console.log(`🔍 [COOKIE] Host: ${req.headers.host}`);
-    console.log(`🔍 [COOKIE] Secure: ${defaultOptions.secure}`);
-    console.log(`🔍 [COOKIE] SameSite: ${defaultOptions.sameSite}`);
-    console.log(`🔍 [COOKIE] MaxAge: ${defaultOptions.maxAge}ms (5 dias)`);
-    
-    console.log(`🔍 [COOKIE] Configurando cookie: ${name}`);
-    console.log(`🔍 [COOKIE] Opções:`, {...defaultOptions, ...options});
-    
-    const cookieString = `${name}=${value}; ${Object.entries({...defaultOptions, ...options})
-      .map(([key, val]) => `${key}=${val}`)
-      .join('; ')}`;
-    
-    console.log(`🔍 [COOKIE] String do cookie: ${cookieString}`);
-    
-    // Para desenvolvimento, adicionar header especial para permitir sameSite: 'none' com secure: false
-    if (process.env.NODE_ENV !== 'production') {
-      res.setHeader('Set-Cookie', cookieString);
-      res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-      res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
-    } else {
-      res.setHeader('Set-Cookie', cookieString);
-    }
-  };
-  next();
-});
-
 // Rota de healthcheck para validar se a API está ativa
 app.get('/health', (req, res) => {
   res.status(200).json({

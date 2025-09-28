@@ -123,7 +123,7 @@ async function saveUserSession(userId, sessionToken) {
     console.log(`🔍 [SESSION] Salvando sessão para usuário ID: ${userId}`);
     console.log(`🔍 [SESSION] Token da sessão: ${sessionToken.substring(0, 20)}...`);
     
-    const expiresAt = new Date(Date.now() + 3600000); // 1 hora
+    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 5 dias
     console.log(`🔍 [SESSION] Sessão expira em: ${expiresAt.toISOString()}`);
     
     const sessionData = {
@@ -329,24 +329,15 @@ router.post('/login', async (req, res) => {
       // Salvar sessão
       const sessionSaved = await saveUserSession(user.id, sessionToken);
       
-      if (sessionSaved) {
-        console.log(`🔍 [COOKIE] Configurando cookie de sessão`);
-        console.log(`🔍 [COOKIE] Nome: session_token`);
-        console.log(`🔍 [COOKIE] Valor: ${sessionToken.substring(0, 20)}...`);
-        console.log(`🔍 [COOKIE] HttpOnly: true`);
-        console.log(`🔍 [COOKIE] Secure: ${process.env.NODE_ENV === 'production'}`);
-        console.log(`🔍 [COOKIE] Origem: ${req.headers.origin || 'sem origem'}`);
-        console.log(`🔍 [COOKIE] Host: ${req.headers.host}`);
-        console.log(`🔍 [COOKIE] SameSite: strict (funciona para cross-origin)`);
-        console.log(`🔍 [COOKIE] MaxAge: 24 horas`);
-        
+      if (sessionSaved) {            
         // Definir cookie HttpOnly com configuração que funciona para cross-origin
         res.cookie('session_token', sessionToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          sameSite: "none",
+          domain: process.env.COOKIE_DOMAIN,
           path: '/',
-          maxAge: 24 * 60 * 60 * 1000 // 24 horas
+          maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (consistente com a sessão no banco)
         });
         
         console.log(`✅ [COOKIE] Cookie configurado com sucesso`);
