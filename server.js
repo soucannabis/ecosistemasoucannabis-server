@@ -99,37 +99,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Configuração de cookies seguros para CORS
+// ✅ Middleware para logs de cookies (sem sobrescrever res.cookie)
 app.use((req, res, next) => {
-  res.cookie = (name, value, options = {}) => {
-    // Configuração que funciona para cross-origin em desenvolvimento
-    const defaultOptions = {
-      httpOnly: true, // Não acessível via JavaScript
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      domain: process.env.COOKIE_DOMAIN,
-      path: "/", // Disponível em todo o site
-      maxAge: 5 * 24 * 60 * 60 * 1000, // 5 dias
-    };
-
-    const cookieString = `${name}=${value}; ${Object.entries({
-      ...defaultOptions,
-      ...options,
-    })
-      .map(([key, val]) => `${key}=${val}`)
-      .join("; ")}`;
-
-    console.log(`🔍 [COOKIE] String do cookie: ${cookieString}`);
-
-    // Para desenvolvimento, adicionar header especial para permitir sameSite: 'none' com secure: false
-    if (process.env.NODE_ENV !== "production") {
-      res.setHeader("Set-Cookie", cookieString);
-      res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-      res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
-    } else {
-      res.setHeader("Set-Cookie", cookieString);
-    }
-  };
+  // Log apenas para debug - não interfere na configuração de cookies
+  if (req.cookies && Object.keys(req.cookies).length > 0) {
+    console.log(`🔍 [COOKIE] Cookies recebidos:`, req.cookies);
+  }
   next();
 });
 
