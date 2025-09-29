@@ -28,33 +28,15 @@ router.post('/create-user', async (req, res) => {
 
     const createUser = await directusRequest("/items/Users", formData, "POST");
     
-    // ✅ Se usuário foi criado com sucesso, definir cookie de sessão
-    if (createUser && createUser.id) {
-      console.log(`🔍 [CREATE-USER] Usuário criado com sucesso: ${createUser.id}`);
-      console.log(`🔍 [CREATE-USER] NODE_ENV: ${process.env.NODE_ENV}`);
-      console.log(`🔍 [CREATE-USER] COOKIE_DOMAIN: ${process.env.COOKIE_DOMAIN}`);
-      console.log(`🔍 [CREATE-USER] session_token: ${createUser.session_token}`);
-      
-      // Usar o session_token que já foi criado automaticamente
-      if (createUser.session_token) {
-        const cookieOptions = {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
-          path: '/',
-          maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias
-        };
-        
-        console.log(`🔍 [CREATE-USER] Cookie options:`, cookieOptions);
-        
-        res.cookie('session_token', createUser.session_token, cookieOptions);
-        console.log(`✅ [CREATE-USER] Cookie de sessão definido para usuário: ${createUser.id}`);
-      } else {
-        console.log(`❌ [CREATE-USER] Usuário criado mas sem session_token`);
-      }
-    } else {
-      console.log(`❌ [CREATE-USER] Usuário não foi criado ou não tem ID`);
+    // Se usuário foi criado com sucesso, definir cookie de sessão
+    if (createUser && createUser.id && createUser.session_token) {
+      res.cookie('session_token', createUser.session_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias
+      });
     }
     
     res.json({
