@@ -35,7 +35,8 @@ router.post('/create-user', async (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
-        maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias
+        // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
+        maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
       });
     }
     

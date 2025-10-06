@@ -95,11 +95,11 @@ function generateSecureToken() {
 // ✅ Função para salvar sessão
 async function saveUserSession(userId, sessionToken) {
   try {
-    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 5 dias
+    // const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 5 dias (removido - sessão não expira mais)
     
     const sessionData = {
       session_token: sessionToken,
-      session_expires: expiresAt.toISOString(),
+      session_expires: null, // Sessão não expira mais
       last_activity: new Date().toISOString(),
       is_session_active: true
     };
@@ -191,17 +191,6 @@ async function authMiddleware(req, res, next) {
     
     const user = users.data[0];
     
-    // Verificar se não expirou
-    const now = new Date();
-    const expiresAt = new Date(user.session_expires);
-    
-    if (now > expiresAt) {
-      // Marcar como inativa
-      await invalidateUserSession(sessionToken);
-      return res.status(401).json({ success: false, message: 'Sessão expirada' });
-    }
-    
-    // Adicionar dados do usuário à requisição
     req.user = {
       id: user.id,
       user_code: user.user_code,
@@ -261,7 +250,8 @@ router.post('/login', async (req, res) => {
           secure: process.env.NODE_ENV === 'production',
           sameSite: "none",
           path: '/',
-          maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias
+          // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
+          maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
         });
         
         res.json({
