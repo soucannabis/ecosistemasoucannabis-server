@@ -49,7 +49,6 @@ app.use(
 
       // Permite requests sem origem (como em ferramentas como Postman)
       if (!origin || allowedOrigins.includes(origin)) {
-        console.log(`✅ [CORS] Origem permitida: ${origin || "sem origem"}`);
         callback(null, true);
       } else {
         console.log(`❌ [CORS] Origem bloqueada: ${origin}`);
@@ -160,52 +159,6 @@ const email = require("./routes/email");
 
 app.use("/api/docuseal", docuseal);
 app.use("/api/email", email);
-
-// ✅ Limpeza automática de sessões desabilitada - sessões não expiram mais
-// setInterval(async () => {
-//   try {
-//     const now = new Date().toISOString();
-
-//     // Buscar usuários com sessões expiradas
-//     const expiredUsersResponse = await fetch(
-//       `${process.env.DIRECTUS_API_URL}/items/Users?filter[session_expires][_lt]=${now}&filter[is_session_active][_eq]=true`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${process.env.DIRECTUS_API_TOKEN}`,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-
-//     const expiredUsers = await expiredUsersResponse.json();
-
-//     if (expiredUsers.data && expiredUsers.data.length > 0) {
-//       // Invalidar sessões expiradas
-//       for (const user of expiredUsers.data) {
-//         await fetch(`${process.env.DIRECTUS_API_URL}/items/Users/${user.id}`, {
-//           method: "PATCH",
-//           headers: {
-//             Authorization: `Bearer ${process.env.DIRECTUS_API_TOKEN}`,
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             is_session_active: false,
-//             session_token: null,
-//             session_expires: null,
-//           }),
-//         });
-//       }
-
-//       console.log(
-//         `🧹 ${
-//           expiredUsers.data.length
-//         } sessões expiradas limpas: ${new Date().toISOString()}`
-//       );
-//     }
-//   } catch (error) {
-//     console.error("❌ Erro ao limpar sessões:", error);
-//   }
-// }, 3600000); // 1 hora
 
 // ✅ Iniciar servidor
 app.listen(PORT, () => {
