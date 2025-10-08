@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const directusRequest = require('./modules/directusRequest');
 const sendEmail = require('./modules/sendEmail');
 const CryptoJS = require('crypto-js');
@@ -7,6 +8,44 @@ const router = express.Router();
 function encrypt(encrypt, secretKey) {
     const encrypted = CryptoJS.AES.encrypt(encrypt, secretKey).toString();
     return encrypted;
+}
+
+// ✅ Função para gerar token seguro
+function generateSecureToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  return token;
+}
+
+// ✅ Função para salvar sessão
+async function saveUserSession(userId, sessionToken) {
+  try {
+    const sessionData = {
+      session_token: sessionToken,
+      session_expires: null, // Sessão não expira mais
+      last_activity: new Date().toISOString(),
+      is_session_active: true
+    };
+    
+    const response = await fetch(`${process.env.DIRECTUS_API_URL}/items/Users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${process.env.DIRECTUS_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sessionData)
+    });
+    
+    if (response.ok) {
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ [SESSION] Erro ao salvar sessão: ${errorText}`);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ [SESSION] Erro ao salvar sessão:', error);
+    return false;
+  }
 }
 
 // ✅ ROTA PÚBLICA: POST /api/directus/create-user
@@ -28,22 +67,42 @@ router.post('/create-user', async (req, res) => {
 
     const createUser = await directusRequest("/items/Users", formData, "POST");
     
-    // Se usuário foi criado com sucesso, definir cookie de sessão
-    if (createUser && createUser.id && createUser.session_token) {
-      res.cookie('session_token', createUser.session_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/',
-        // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
-        maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
+    // Se usuário foi criado com sucesso, gerar token e definir cookie de sessão
+    if (createUser && createUser.id) {
+      // Gerar token único
+      const sessionToken = generateSecureToken();
+      
+      // Salvar sessão no banco
+      const sessionSaved = await saveUserSession(createUser.id, sessionToken);
+      
+      if (sessionSaved) {
+        // Definir cookie HttpOnly
+        res.cookie('session_token', sessionToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          path: '/',
+          // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
+          maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
+        });
+        
+        res.json({
+          success: true,
+          data: createUser
+        });
+      } else {
+        console.log(`❌ [CREATE-USER] Falha ao salvar sessão para usuário: ${createUser.id}`);
+        res.status(500).json({ 
+          success: false, 
+          message: 'Usuário criado, mas erro ao criar sessão' 
+        });
+      }
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar usuário' 
       });
     }
-    
-    res.json({
-      success: true,
-      data: createUser
-    });
   } catch (error) {
     console.error('Erro ao criar usuário:', error);
     res.status(500).json({ 
