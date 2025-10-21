@@ -1,3 +1,24 @@
-node_modules
+# Logs
+logs/
+*.log
+
+# Node modules
+node_modules/
+
+# Environment variables
 .env
-newrelic_agent.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+nodemon.json

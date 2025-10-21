@@ -1,7 +1,11 @@
 const express = require('express');
 const crypto = require('crypto');
 const CryptoJS = require('crypto-js');
+const UserLogger = require('../utils/logger');
 const router = express.Router();
+
+// ✅ Inicializar sistema de logs
+const logger = new UserLogger();
 
 // ✅ Função para validar credenciais
 async function validateUserCredentials(email, password) {
@@ -244,15 +248,34 @@ router.post('/login', async (req, res) => {
       const sessionSaved = await saveUserSession(user.id, sessionToken);
       
       if (sessionSaved) {            
-        // Definir cookie HttpOnly com configuração que funciona para cross-origin
-        res.cookie('session_token', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: "none",
-          path: '/',
-          // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
-          maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
-        });
+        const isHttps = req.headers.origin && req.headers.origin.startsWith('https://');
+        
+        if (isHttps) {
+          console.log('🌐 [PRODUÇÃO] Usando configuração HTTPS com domain');
+          // ✅ Produção: configuração HTTPS com domain para subdomínios
+          res.cookie('session_token', sessionToken, {
+            httpOnly: true,
+            secure: true,                    // ✅ HTTPS obrigatório
+            sameSite: 'lax',                // ✅ Same-origin com domain
+            domain: '.soucannabis.com',     // ✅ Compartilha entre subdomínios
+            path: '/',
+            maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos
+          });
+          
+          // ✅ Headers específicos para produção
+          res.header('Access-Control-Allow-Credentials', 'true');
+          res.header('Access-Control-Allow-Origin', req.headers.origin);
+        } else {
+          console.log('🏠 [LOCAL] Usando configuração para localhost');
+          // ✅ Localhost: configuração local
+          res.cookie('session_token', sessionToken, {
+            httpOnly: true,
+            secure: false,                   // ✅ HTTP local
+            sameSite: 'lax',                 // ✅ Same-origin
+            path: '/',
+            maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos
+          });
+        }
         
         res.json({
           success: true,

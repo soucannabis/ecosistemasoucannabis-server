@@ -1,9 +1,15 @@
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const directusRequest = require('./modules/directusRequest');
 const sendEmail = require('./modules/sendEmail');
 const CryptoJS = require('crypto-js');
+const UserLogger = require('../utils/logger');
 const router = express.Router();
+
+// ✅ Inicializar sistema de logs
+const logger = new UserLogger();
 
 function encrypt(encrypt, secretKey) {
     const encrypted = CryptoJS.AES.encrypt(encrypt, secretKey).toString();
@@ -59,6 +65,14 @@ router.post('/create-user', async (req, res) => {
         associate_status: 0,
         partner: req.body.partner
       };
+      
+      // ✅ Log de início de sessão de cadastro
+      const sessionId = logger.logSessionStart(req, req.body.email_account);
+      logger.logPageAccess(req, req.body.email_account, 'CREATE_USER', {
+        endpoint: '/api/directus/create-user',
+        method: 'POST',
+        formData: logger.sanitizeFormData(formData)
+      });
     }
 
     if (req.body.responsable_type) {
@@ -76,15 +90,43 @@ router.post('/create-user', async (req, res) => {
       const sessionSaved = await saveUserSession(createUser.id, sessionToken);
       
       if (sessionSaved) {
-        // Definir cookie HttpOnly
-        res.cookie('session_token', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          path: '/',
-          // maxAge: 5 * 24 * 60 * 60 * 1000 // 5 dias (removido)
-          maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos - cookie não expira automaticamente
-        });
+        const isHttps = req.headers.origin && req.headers.origin.startsWith('https://');
+        
+        if (isHttps) {
+          console.log('🌐 [PRODUÇÃO] Usando configuração HTTPS com domain na criação de usuário');
+          // ✅ Produção: configuração HTTPS com domain para subdomínios
+          res.cookie('session_token', sessionToken, {
+            httpOnly: true,
+            secure: true,                    // ✅ HTTPS obrigatório
+            sameSite: 'lax',                // ✅ Same-origin com domain
+            domain: '.soucannabis.com',     // ✅ Compartilha entre subdomínios
+            path: '/',
+            maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos
+          });
+          
+          // ✅ Headers específicos para produção
+          res.header('Access-Control-Allow-Credentials', 'true');
+          res.header('Access-Control-Allow-Origin', req.headers.origin);
+        } else {
+          console.log('🏠 [LOCAL] Usando configuração para localhost na criação de usuário');
+          // ✅ Localhost: configuração local
+          res.cookie('session_token', sessionToken, {
+            httpOnly: true,
+            secure: false,                   // ✅ HTTP local
+            sameSite: 'lax',                 // ✅ Same-origin
+            path: '/',
+            maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos
+          });
+        }
+        
+        // ✅ Log de sucesso na criação de usuário
+        if (req.body.email_account) {
+          logger.logSuccess(req, req.body.email_account, 'USER_CREATED', {
+            userId: createUser.id,
+            userCode: createUser.user_code,
+            sessionToken: sessionToken ? 'SET' : 'NOT_SET'
+          });
+        }
         
         res.json({
           success: true,
@@ -105,6 +147,15 @@ router.post('/create-user', async (req, res) => {
     }
   } catch (error) {
     console.error('Erro ao criar usuário:', error);
+    
+    // ✅ Log de erro
+    if (req.body.email_account) {
+      logger.logError(req, req.body.email_account, error, {
+        endpoint: '/api/directus/create-user',
+        method: 'POST'
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
       message: 'Erro interno do servidor' 
@@ -116,7 +167,6 @@ router.post('/create-user', async (req, res) => {
 router.post('/search', async (req, res) => {
   try {
     const userData = await directusRequest(req.body.query, "", "GET");
-    
     res.json({
       success: true,
       data: userData
@@ -232,6 +282,41 @@ router.post('/redefine-pass', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Erro interno do servidor'
+    });
+  }
+});
+
+// ✅ ROTA PÚBLICA: POST /api/logs/user-session
+router.post('/user-session', async (req, res) => {
+  try {
+    const { email, logs } = req.body;
+    
+    console.log('📝 [LOGS] Recebendo logs do frontend para:', email);
+    
+    // ✅ Log de recebimento de logs do frontend
+    logger.logUserAction(req, email, 'FRONTEND_LOGS_RECEIVED', {
+      sessionId: logs.sessionId,
+      totalActions: logs.totalActions,
+      startTime: logs.startTime,
+      endTime: logs.endTime
+    });
+    
+    // ✅ Salvar logs do frontend
+    const fileName = logger.generateLogFileName(email);
+    const filePath = path.join(logger.logsDir, `frontend_${fileName}`);
+    
+    fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+    console.log(`📝 [LOGS] Logs do frontend salvos: ${fileName}`);
+    
+    res.json({
+      success: true,
+      message: 'Logs recebidos com sucesso'
+    });
+  } catch (error) {
+    console.error('❌ [LOGS] Erro ao processar logs do frontend:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao processar logs'
     });
   }
 });

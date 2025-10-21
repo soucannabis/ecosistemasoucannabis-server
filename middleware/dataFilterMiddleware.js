@@ -28,7 +28,7 @@ function filterDataByPath(data, req) {
     '/api/directus/search': {
       'default': {
         'POST': {
-          allowedFields: ['email_account', 'user_code']
+          allowedFields: ['email_account', 'user_code','associate_status']
         }
       }
     }
