@@ -98,8 +98,8 @@ router.post('/create-user', async (req, res) => {
           res.cookie('session_token', sessionToken, {
             httpOnly: true,
             secure: true,                    // ✅ HTTPS obrigatório
-            sameSite: 'lax',                // ✅ Same-origin com domain
-            domain: '.soucannabis.com',     // ✅ Compartilha entre subdomínios
+            sameSite: 'lax',                // ✅ Compatível com Safari
+            domain: process.env.COOKIE_DOMAIN,     // ✅ Domínio configurável
             path: '/',
             maxAge: 365 * 10 * 24 * 60 * 60 * 1000 // 10 anos
           });
