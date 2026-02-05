@@ -58,6 +58,7 @@ async function saveUserSession(userId, sessionToken) {
 router.post('/create-user', async (req, res) => {
   try {
     var formData = {};
+    const isPatientCreation = req.body?.responsable_type === "patient" || !!req.body?.responsable_code;
 
     if (req.body.email_account) {
       formData = {
@@ -79,10 +80,21 @@ router.post('/create-user', async (req, res) => {
       formData = req.body;
     }
 
+    if (isPatientCreation) {
+      formData.status = "Paciente";
+    }
+
     const createUser = await directusRequest("/items/Users", formData, "POST");
     
     // Se usuário foi criado com sucesso, gerar token e definir cookie de sessão
     if (createUser && createUser.id) {
+      if (isPatientCreation) {
+        return res.json({
+          success: true,
+          data: createUser
+        });
+      }
+
       // Gerar token único
       const sessionToken = generateSecureToken();
       
