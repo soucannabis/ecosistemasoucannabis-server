@@ -66,6 +66,12 @@ router.post('/create-user', async (req, res) => {
         associate_status: 0,
         partner: req.body.partner
       };
+      if (req.body.bvid) {
+        formData.bvid = req.body.bvid;
+      }
+      if (req.body.status) {
+        formData.status = req.body.status;
+      }
       
       // ✅ Log de início de sessão de cadastro
       const sessionId = logger.logSessionStart(req, req.body.email_account);
