@@ -18,9 +18,26 @@ router.post('/create-contract', authMiddleware, async (req, res) => {
         }
 
         const usercode = usercodeField.default_value;
+
+        if (String(usercode) !== String(req.user.id)) {
+            console.log(`❌ Tentativa de criar contrato para outro usuário: ${req.user.email} tentou usar ${usercode}`);
+            return res.status(403).json({ success: false, message: 'Acesso negado' });
+        }
+
         const associateData = await directusRequest("/items/Users?filter[id][_eq]=" + usercode + "", '', "GET")
 
         console.log(associateData)
+
+        if (!associateData) {
+            return res.status(404).json({ success: false, message: 'Usuário não encontrado' });
+        }
+
+        if (!associateData.rg_proof || !associateData.proof_of_address) {
+            return res.status(400).json({
+                success: false,
+                message: 'Documento de identidade e comprovante de endereço são obrigatórios para gerar o termo'
+            });
+        }
 
         // Verificar se o responsable_type é "another" e buscar dados do paciente
         let templateId = 1; // template padrão
