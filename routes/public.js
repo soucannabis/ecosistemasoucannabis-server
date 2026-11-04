@@ -198,6 +198,141 @@ router.post('/search', async (req, res) => {
   }
 });
 
+// ============================================================
+// ✅ ROTAS PÚBLICAS: dados do pet via link (UUID = Users.user_code)
+//    GET  /api/pet-data/:associateCode  -> dados atuais do pet
+//    (o parâmetro de URL da página é ac e o valor é o Users.user_code)
+//    POST /api/pet-data/:associateCode  -> atualiza Users.pet_data
+// O código é um UUID não adivinhável e funciona como credencial
+// do link; só o campo pet_data é lido/alterado, só para tipo "pet".
+// ============================================================
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PET_SPECIES = ['felino', 'canino'];
+const PET_SEX = ['macho', 'femea'];
+
+async function findPetUserByAssociateCode(associateCode) {
+  const url =
+    `${process.env.DIRECTUS_API_URL}/items/Users` +
+    `?filter[user_code][_eq]=${encodeURIComponent(associateCode)}` +
+    `&fields=id,name_associate,responsable_type,pet_data&limit=1`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.DIRECTUS_API_TOKEN}` },
+  });
+  if (!response.ok) {
+    throw new Error(`Directus respondeu ${response.status} ao buscar associado`);
+  }
+  const json = await response.json();
+  const user = json?.data?.[0];
+  if (!user || user.responsable_type !== 'pet') return null;
+  return user;
+}
+
+function parseStoredPetData(raw) {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  return typeof raw === 'object' ? raw : null;
+}
+
+// Valida e normaliza o corpo. Retorna { value } ou { errors }
+function validatePetData(input) {
+  const errors = [];
+  const data = input && typeof input === 'object' ? input : {};
+  const text = (v, max) => {
+    if (v === null || v === undefined) return null;
+    const str = String(v).trim();
+    if (str === '') return null;
+    return str.slice(0, max);
+  };
+
+  const especie = text(data.especie, 20)?.toLowerCase() || null;
+  if (!PET_SPECIES.includes(especie)) errors.push('especie');
+
+  const sexo = text(data.sexo, 20)?.toLowerCase() || null;
+  if (!PET_SEX.includes(sexo)) errors.push('sexo');
+
+  const raca = text(data.raca, 100);
+  if (!raca) errors.push('raca');
+
+  const idade = data.idade === '' || data.idade === null || data.idade === undefined
+    ? NaN
+    : Number(data.idade);
+  if (!Number.isInteger(idade) || idade < 0 || idade > 60) errors.push('idade');
+
+  if (errors.length) return { errors };
+  return {
+    value: {
+      especie,
+      raca,
+      idade,
+      sexo,
+      tipo_produto: text(data.tipo_produto, 100),
+      dosagem: text(data.dosagem, 200),
+    },
+  };
+}
+
+router.get('/pet-data/:associateCode', async (req, res) => {
+  try {
+    const { associateCode } = req.params;
+    if (!UUID_REGEX.test(associateCode)) {
+      return res.status(400).json({ success: false, message: 'Link inválido' });
+    }
+    const user = await findPetUserByAssociateCode(associateCode);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Link inválido' });
+    }
+    res.json({
+      success: true,
+      data: {
+        name: user.name_associate || null,
+        pet_data: parseStoredPetData(user.pet_data),
+      },
+    });
+  } catch (error) {
+    console.error('Erro ao buscar dados do pet:', error);
+    res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+  }
+});
+
+router.post('/pet-data/:associateCode', async (req, res) => {
+  try {
+    const { associateCode } = req.params;
+    if (!UUID_REGEX.test(associateCode)) {
+      return res.status(400).json({ success: false, message: 'Link inválido' });
+    }
+
+    const { value, errors } = validatePetData(req.body?.pet_data);
+    if (errors) {
+      return res.status(422).json({ success: false, message: 'Dados inválidos', fields: errors });
+    }
+
+    const user = await findPetUserByAssociateCode(associateCode);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Link inválido' });
+    }
+
+    const response = await fetch(`${process.env.DIRECTUS_API_URL}/items/Users/${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${process.env.DIRECTUS_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ pet_data: value }),
+    });
+    if (!response.ok) {
+      console.error('Erro Directus ao salvar pet_data:', response.status, await response.text());
+      return res.status(502).json({ success: false, message: 'Não foi possível salvar' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao atualizar dados do pet:', error);
+    res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+  }
+});
+
 // ✅ ROTA PÚBLICA: POST /api/email/lost-password
 router.post('/lost-password', async (req, res) => {
   try {
