@@ -260,6 +260,9 @@ function validatePetData(input) {
     : Number(data.idade);
   if (!Number.isInteger(idade) || idade < 0 || idade > 60) errors.push('idade');
 
+  const motivo_tratamento = text(data.motivo_tratamento, 2000);
+  if (!motivo_tratamento) errors.push('motivo_tratamento');
+
   if (errors.length) return { errors };
   return {
     value: {
@@ -269,6 +272,7 @@ function validatePetData(input) {
       sexo,
       tipo_produto: text(data.tipo_produto, 100),
       dosagem: text(data.dosagem, 200),
+      motivo_tratamento,
     },
   };
 }
